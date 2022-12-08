@@ -1,7 +1,7 @@
 <?php
-class ControllerExtensionPaymentWebPaymentSoftware extends Controller {
+class ControllerExtensionPaymentQpayPaymentSoftware extends Controller {
 	public function index() {
-		$this->load->language('extension/payment/web_payment_software');
+		$this->load->language('extension/payment/qpay_payment_software');
 
 		$data['months'] = array();
 
@@ -23,7 +23,7 @@ class ControllerExtensionPaymentWebPaymentSoftware extends Controller {
 			);
 		}
 
-		return $this->load->view('extension/payment/web_payment_software', $data);
+		return $this->load->view('extension/payment/qpay_payment_software', $data);
 	}
 
 	public function send() {
@@ -35,9 +35,9 @@ class ControllerExtensionPaymentWebPaymentSoftware extends Controller {
 
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
-		$request  = 'MERCHANT_ID=' . urlencode($this->config->get('payment_web_payment_software_merchant_name'));
-		$request .= '&MERCHANT_KEY=' . urlencode($this->config->get('payment_web_payment_software_merchant_key'));
-		$request .= '&TRANS_TYPE=' . urlencode($this->config->get('payment_web_payment_software_method') == 'capture' ? 'AuthCapture' : 'AuthOnly');
+		$request  = 'MERCHANT_ID=' . urlencode($this->config->get('payment_qpay_payment_software_merchant_name'));
+		$request .= '&MERCHANT_KEY=' . urlencode($this->config->get('payment_qpay_payment_software_merchant_key'));
+		$request .= '&TRANS_TYPE=' . urlencode($this->config->get('payment_qpay_payment_software_method') == 'capture' ? 'AuthCapture' : 'AuthOnly');
 		$request .= '&AMOUNT=' . urlencode($this->currency->format($order_info['total'], $order_info['currency_code'], 1.00000, false));
 		$request .= '&CC_NUMBER=' . urlencode(str_replace(' ', '', $this->request->post['cc_number']));
 		$request .= '&CC_EXP=' . urlencode($this->request->post['cc_expire_date_month'] . substr($this->request->post['cc_expire_date_year'], 2));
@@ -53,11 +53,11 @@ class ControllerExtensionPaymentWebPaymentSoftware extends Controller {
 		$request .= '&CC_EMAIL=' . urlencode($order_info['email']);
 		$request .= '&INVOICE_NUM=' . urlencode($this->session->data['order_id']);
 
-		if ($this->config->get('payment_web_payment_software_mode') == 'test') {
+		if ($this->config->get('payment_qpay_payment_software_mode') == 'test') {
 			$request .= '&TEST_MODE=1';
 		}
 
-		$curl = curl_init('https://secure.web-payment-software.com/gateway');
+		$curl = curl_init('https://secure.qpay-payment-software.com/gateway');
 
 		curl_setopt($curl, CURLOPT_PORT, 443);
 		curl_setopt($curl, CURLOPT_HEADER, 0);
@@ -73,10 +73,10 @@ class ControllerExtensionPaymentWebPaymentSoftware extends Controller {
 		curl_close($curl);
 
 		//If in test mode strip results to only contain xml data
-		if ($this->config->get('payment_web_payment_software_mode') == 'test') {
-			$end_index = strpos($response, '</WebPaymentSoftwareResponse>');
+		if ($this->config->get('payment_qpay_payment_software_mode') == 'test') {
+			$end_index = strpos($response, '</QpayPaymentSoftwareResponse>');
 			$debug = substr($response, $end_index + 30);
-			$response = substr($response, 0, $end_index) . '</WebPaymentSoftwareResponse>';
+			$response = substr($response, 0, $end_index) . '</QpayPaymentSoftwareResponse>';
 		}
 
 		//get response xml
